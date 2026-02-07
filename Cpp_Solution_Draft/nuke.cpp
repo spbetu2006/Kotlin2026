@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 
     // Частный случай: "полное" решение
     if (radius >= maxRadius2) {
-        cout << 49 << " "  << 49 << in_seq.size() << endl;
+        cout << 49 << " "  << 49 << " " << in_seq.size() << endl;
         return 0;
     }
 

@@ -87,7 +87,7 @@ void readTableNumber(FILE *file, tNumberUnsigned* fn_val) {
          char * ch = ((char*)fn_val);
          for (size_t i=0;i<tNumberSize;++i) {
              fread(ch, 1, 1, file);
-             --ch;
+             ++ch;
          }
      }
      // "холостое" считывание разрядов точности, не "влезающих" в разрядность процессора
@@ -103,7 +103,7 @@ unsigned char readTable(unsigned int dx
                        , tNumberUnsigned* fn_delta_x
                        , tNumberUnsigned* fn_delta_y) {
 
-    FILE *table = NULL;
+    static FILE *table = NULL;
     if (!table) { 
         table = fopen(gFileTableName, "rb");
         // Отключение буферизации
@@ -124,7 +124,7 @@ unsigned char readTable(unsigned int dx
     for (unsigned int j=(i?i:1); j<=gMaxDy; ++j)
     for (unsigned int k=1; k<=gMaxRadius; ++k)
     {
-        if (dx*dx + dy*dy > R*R) {
+        if (i*i + j*j > k*k) {
             continue;
         }       
         // Нашли табличный элемент - считываем
