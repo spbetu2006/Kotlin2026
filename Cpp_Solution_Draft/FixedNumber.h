@@ -42,8 +42,13 @@ public:
     FixedNumber(const FixedNumber &obj) : m_val(obj.m_val), m_precise(obj.m_precise) {}
 
     friend std::ostream& operator<<(std::ostream& os, const FixedNumber& object) {
-        os << ( long long)(object.m_val / pow2base);
-         long long below = object.m_val % pow2base;
+        long long val = object.m_val;
+        if (val < 0) {
+            os << "-";
+            val = -val;
+        }
+        os << (long long)(val / pow2base);
+        long long below = val % pow2base;
         if (below)
             os << ".";
         while (below) {

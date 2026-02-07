@@ -21,6 +21,7 @@
     const tNumber fixedNshift = 281474976710656; /* 2^48 */
     const char * s_dprintf = "%lld";
     const char * s_uprintf = "%llu";
+    const tNumber fixed_epsilon = 256;
 
 #elif ARCH_X32
     typedef int32_t          tNumber;
@@ -29,6 +30,7 @@
     const tNumber fixedNshift = 65536; /* 2^16 */
     const char * s_dprintf = "%ld";
     const char * s_uprintf = "%lu";
+    const tNumber fixed_epsilon = 0;
 
 #elif ARCH_X16
     typedef int16_t          tNumber;
@@ -37,6 +39,7 @@
     const tNumber fixedNshift = 1; /* 2^0 */
     const char * s_dprintf = "%d";
     const char * s_uprintf = "%u";
+    const tNumber fixed_epsilon = 0;
 
 #else
 #error "Unsupported CPU arch"
@@ -44,6 +47,7 @@
 
 const size_t gTableElemSize = 16;
 const char * gFileTableName = "sq_table.tbl";
+const char * gAccuracyInfo = "(при повышенной точности решение может быть лучше!)";
 
 // Входные данные задачи (фиксированные)
 #define gMaxPoints 100*100
@@ -87,7 +91,7 @@ void readTableNumber(FILE *file, tNumberUnsigned* fn_val) {
          char * ch = ((char*)fn_val);
          for (size_t i=0;i<tNumberSize;++i) {
              fread(ch, 1, 1, file);
-             --ch;
+             ++ch;
          }
      }
      // "холостое" считывание разрядов точности, не "влезающих" в разрядность процессора
@@ -103,7 +107,7 @@ unsigned char readTable(unsigned int dx
                        , tNumberUnsigned* fn_delta_x
                        , tNumberUnsigned* fn_delta_y) {
 
-    FILE *table = NULL;
+    static FILE *table = NULL;
     if (!table) { 
         table = fopen(gFileTableName, "rb");
         // Отключение буферизации
@@ -124,7 +128,7 @@ unsigned char readTable(unsigned int dx
     for (unsigned int j=(i?i:1); j<=gMaxDy; ++j)
     for (unsigned int k=1; k<=gMaxRadius; ++k)
     {
-        if (dx*dx + dy*dy > R*R) {
+        if (i*i + j*j > k*k) {
             continue;
         }       
         // Нашли табличный элемент - считываем
@@ -226,8 +230,10 @@ int main(int argc, char* argv[]) {
             for (size_t v=0;v<2;++v)
             {
                 // Центр окружности: (center_x, center_y)
-                const tNumber fn_center_x = fn_cx + (v?fn_delta_x2:(-fn_delta_x2));
-                const tNumber fn_center_y = fn_cy + (v?fn_delta_y2:(-fn_delta_y2));  
+                const tNumber fn_center_x_delta = (v?fn_delta_x2:(-fn_delta_x2));
+                const tNumber fn_center_y_delta = (v?fn_delta_y2:(-fn_delta_y2));
+                const tNumber fn_center_x = fn_cx + ((fn_center_x_delta>0)?(fn_center_x_delta-fixed_epsilon):(fn_center_x_delta+fixed_epsilon));
+                const tNumber fn_center_y = fn_cy + ((fn_center_y_delta>0)?(fn_center_y_delta-fixed_epsilon):(fn_center_y_delta+fixed_epsilon));
                 size_t cur_targets = 0;
 
                 // Считаем точки, которые попадают внутрь заданного радиуса
@@ -255,7 +261,7 @@ int main(int argc, char* argv[]) {
         printfFixedNumber(fn_max_targets_x);
         printf(" ");
         printfFixedNumber(fn_max_targets_y);
-        printf(" %lu\n", max_targets);
+        printf(" %lu %s\n", max_targets, gAccuracyInfo);
     } else {
         /* Случай, когда "хорошего" решения не нашлось - выводим любую цель */
         printf("%d %d 1\n", points[0].x, points[0].y);
