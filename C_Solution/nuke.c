@@ -21,7 +21,7 @@
     const tNumber fixedNshift = 281474976710656; /* 2^48 */
     const char * s_dprintf = "%lld";
     const char * s_uprintf = "%llu";
-    const tNumber fixed_epsilon = 256;
+    const tNumber fixed_epsilon = 16;
 
 #elif ARCH_X32
     typedef int32_t          tNumber;
@@ -39,11 +39,14 @@
     const tNumber fixedNshift = 1; /* 2^0 */
     const char * s_dprintf = "%d";
     const char * s_uprintf = "%u";
-    const tNumber fixed_epsilon = 0;
+    const tNumber fixed_epsilon = 3;
 
 #else
 #error "Unsupported CPU arch"
 #endif
+
+#define MAX(A,B) (((A)>(B))?(A):(B))
+#define MIN(A,B) (((A)>(B))?(B):(A))
 
 const size_t gTableElemSize = 16;
 const char * gFileTableName = "sq_table.tbl";
@@ -232,8 +235,8 @@ int main(int argc, char* argv[]) {
                 // Центр окружности: (center_x, center_y)
                 const tNumber fn_center_x_delta = (v?fn_delta_x2:(-fn_delta_x2));
                 const tNumber fn_center_y_delta = (v?fn_delta_y2:(-fn_delta_y2));
-                const tNumber fn_center_x = fn_cx + ((fn_center_x_delta>0)?(fn_center_x_delta-fixed_epsilon):(fn_center_x_delta+fixed_epsilon));
-                const tNumber fn_center_y = fn_cy + ((fn_center_y_delta>0)?(fn_center_y_delta-fixed_epsilon):(fn_center_y_delta+fixed_epsilon));
+                const tNumber fn_center_x = fn_cx + ((fn_center_x_delta>0)?MAX(fn_center_x_delta-fixed_epsilon,0):MIN(fn_center_x_delta+fixed_epsilon,0));
+                const tNumber fn_center_y = fn_cy + ((fn_center_y_delta>0)?MAX(fn_center_y_delta-fixed_epsilon,0):MIN(fn_center_y_delta+fixed_epsilon,0));
                 size_t cur_targets = 0;
 
                 // Считаем точки, которые попадают внутрь заданного радиуса
